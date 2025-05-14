@@ -11,109 +11,225 @@ import {
   isDateInRange,
 } from '../../utils/dateUtils';
 
-describe('getDaysInMonth', () => {
-  it('1월은 31일 수를 반환한다', () => {});
+describe('dateUtils', () => {
+  /**
+   * @description 주어진 년도와 월의 일수를 반환합니다.
+   */
+  describe('getDaysInMonth', () => {
+    it('2월은 평년에 28일까지 있어야 한다', () => {
+      expect(getDaysInMonth(2025, 2)).toBe(28);
+    });
 
-  it('4월은 30일 일수를 반환한다', () => {});
+    it('2월은 윤년에 29일까지 있어야 한다', () => {
+      expect(getDaysInMonth(2024, 2)).toBe(29);
+    });
 
-  it('윤년의 2월에 대해 29일을 반환한다', () => {});
+    it('4월은 30일까지 있어야 한다', () => {
+      expect(getDaysInMonth(2025, 4)).toBe(30);
+    });
 
-  it('평년의 2월에 대해 28일을 반환한다', () => {});
+    it('5월은 31일까지 있어야 한다', () => {
+      expect(getDaysInMonth(2025, 5)).toBe(31);
+    });
+  });
 
-  it('유효하지 않은 월에 대해 적절히 처리한다', () => {});
-});
+  /**
+   * @description 주어진 날짜가 속한 주의 모든 날짜를 반환합니다.
+   */
+  describe('getWeekDates', () => {
+    /**
+     * 해당 주간의 일요일부터 토요일까지 날짜를 반환합니다.
+     */
+    it('주어진 날짜의 주간 날짜(일요일부터 토요일까지)를 반환해야 한다', () => {
+      const date = new Date(2025, 4, 15);
+      const weekDates = getWeekDates(date);
 
-describe('getWeekDates', () => {
-  it('주중의 날짜(수요일)에 대해 올바른 주의 날짜들을 반환한다', () => {});
+      const WEEK_LENGTH = 7;
+      const EXPECTED_MONTH = 4;
+      const EXPECTED_SUNDAY_DATE = 11;
 
-  it('주의 시작(월요일)에 대해 올바른 주의 날짜들을 반환한다', () => {});
+      expect(weekDates).toHaveLength(WEEK_LENGTH);
 
-  it('주의 끝(일요일)에 대해 올바른 주의 날짜들을 반환한다', () => {});
+      weekDates.forEach((currentDate, currentDateIndex) => {
+        const expectedDateOfWeek = EXPECTED_SUNDAY_DATE + currentDateIndex;
+        expect(currentDate.getDate()).toBe(expectedDateOfWeek);
+        expect(currentDate.getMonth()).toBe(EXPECTED_MONTH);
+      });
+    });
 
-  it('연도를 넘어가는 주의 날짜를 정확히 처리한다 (연말)', () => {});
+    /**
+     * 월의 끝인 2025. 5. 31 토요일의 경우에도
+     * 일요일부터 토요일까지 일주일 날짜를 반환해야 한다.
+     */
+    it('주가 월을 넘어가는 경우도 정확히 계산해야 한다', () => {
+      const date = new Date(2025, 4, 31);
+      const weekDates = getWeekDates(date);
 
-  it('연도를 넘어가는 주의 날짜를 정확히 처리한다 (연초)', () => {});
+      expect(weekDates[0].getDate()).toBe(25);
+      expect(weekDates[1].getDate()).toBe(26);
+      expect(weekDates[2].getDate()).toBe(27);
+      expect(weekDates[3].getDate()).toBe(28);
+      expect(weekDates[4].getDate()).toBe(29);
+      expect(weekDates[5].getDate()).toBe(30);
+      expect(weekDates[6].getDate()).toBe(31);
+    });
+  });
 
-  it('윤년의 2월 29일을 포함한 주를 올바르게 처리한다', () => {});
+  /**
+   * @description 주어진 날짜가 속한 월의 모든 주간 배열을 반환합니다.
+   */
+  describe('getWeeksAtMonth', () => {
+    it('2025년 5월의 주간 배열을 정확히 반환해야 한다', () => {
+      const date = new Date(2025, 4, 1);
+      const weeks = getWeeksAtMonth(date);
+      expect(weeks).toMatchObject([
+        [null, null, null, null, 1, 2, 3],
+        [4, 5, 6, 7, 8, 9, 10],
+        [11, 12, 13, 14, 15, 16, 17],
+        [18, 19, 20, 21, 22, 23, 24],
+        [25, 26, 27, 28, 29, 30, 31],
+      ]);
+    });
 
-  it('월의 마지막 날짜를 포함한 주를 올바르게 처리한다', () => {});
-});
+    it('2025년 6월의 주간 배열을 정확히 반환해야 한다', () => {
+      const date = new Date(2025, 5, 1);
+      const weeks = getWeeksAtMonth(date);
+      expect(weeks).toMatchObject([
+        [1, 2, 3, 4, 5, 6, 7],
+        [8, 9, 10, 11, 12, 13, 14],
+        [15, 16, 17, 18, 19, 20, 21],
+        [22, 23, 24, 25, 26, 27, 28],
+        [29, 30, null, null, null, null, null],
+      ]);
+    });
+  });
 
-describe('getWeeksAtMonth', () => {
-  it('2025년 7월 1일의 올바른 주 정보를 반환해야 한다', () => {});
-});
+  describe('getEventsForDay', () => {
+    const events: Event[] = [
+      {
+        id: '1',
+        title: '이벤트 1',
+        date: '2025-05-15',
+        startTime: '10:00',
+        endTime: '11:00',
+        description: '설명 1',
+        location: '위치 1',
+        category: '카테고리 1',
+        repeat: { type: 'none', interval: 0 },
+        notificationTime: 15,
+      },
+      {
+        id: '2',
+        title: '이벤트 2',
+        date: '2025-05-15',
+        startTime: '14:00',
+        endTime: '15:00',
+        description: '설명 2',
+        location: '위치 2',
+        category: '카테고리 2',
+        repeat: { type: 'none', interval: 0 },
+        notificationTime: 15,
+      },
+      {
+        id: '3',
+        title: '이벤트 3',
+        date: '2025-05-16',
+        startTime: '10:00',
+        endTime: '11:00',
+        description: '설명 3',
+        location: '위치 3',
+        category: '카테고리 3',
+        repeat: { type: 'none', interval: 0 },
+        notificationTime: 15,
+      },
+    ];
 
-describe('getEventsForDay', () => {
-  it('특정 날짜(1일)에 해당하는 이벤트만 정확히 반환한다', () => {});
+    it('특정 날짜에 해당하는 이벤트만 반환해야 한다', () => {
+      const day = 15;
+      const result = getEventsForDay(events, day);
+      expect(result[0].id).toBe('1');
+      expect(result[1].id).toBe('2');
+    });
 
-  it('해당 날짜에 이벤트가 없을 경우 빈 배열을 반환한다', () => {});
+    it('해당 날짜에 이벤트가 없으면 빈 배열을 반환해야 한다', () => {
+      const day = 10;
+      expect(getEventsForDay(events, day)).toEqual([]);
+    });
+  });
 
-  it('날짜가 0일 경우 빈 배열을 반환한다', () => {});
+  describe('formatWeek', () => {
+    it('2025년 5월 15일은 "2025년 5월 3주"로 포맷팅되어야 한다', () => {
+      const date = new Date(2025, 4, 15);
+      expect(formatWeek(date)).toBe('2025년 5월 3주');
+    });
 
-  it('날짜가 32일 이상인 경우 빈 배열을 반환한다', () => {});
-});
+    it('2025년 6월 5일은 "2025년 6월 1주"로 포맷팅되어야 한다', () => {
+      const date = new Date(2025, 5, 5);
+      expect(formatWeek(date)).toBe('2025년 6월 1주');
+    });
+  });
 
-describe('formatWeek', () => {
-  it('월의 중간 날짜에 대해 올바른 주 정보를 반환한다', () => {});
+  describe('formatMonth', () => {
+    it('2025년 5월은 "2025년 5월"로 포맷팅되어야 한다', () => {
+      const date = new Date(2025, 4, 15);
+      expect(formatMonth(date)).toBe('2025년 5월');
+    });
 
-  it('월의 첫 주에 대해 올바른 주 정보를 반환한다', () => {});
+    it('2025년 12월은 "2025년 12월"로 포맷팅되어야 한다', () => {
+      const date = new Date(2025, 11, 25);
+      expect(formatMonth(date)).toBe('2025년 12월');
+    });
+  });
 
-  it('월의 마지막 주에 대해 올바른 주 정보를 반환한다', () => {});
+  describe('isDateInRange', () => {
+    it('범위 내의 날짜는 true를 반환해야 한다', () => {
+      const date = new Date(2025, 4, 15);
+      const rangeEnd = new Date(2025, 4, 20);
+      const rangeStart = new Date(2025, 4, 10);
+      expect(isDateInRange(date, rangeStart, rangeEnd)).toBe(true);
+    });
 
-  it('연도가 바뀌는 주에 대해 올바른 주 정보를 반환한다', () => {});
+    it('범위 경계에 있는 날짜도 true를 반환해야 한다', () => {
+      const date = new Date(2025, 4, 10);
+      const rangeEnd = new Date(2025, 4, 20);
+      const rangeStart = new Date(2025, 4, 10);
+      expect(isDateInRange(date, rangeStart, rangeEnd)).toBe(true);
+    });
 
-  it('윤년 2월의 마지막 주에 대해 올바른 주 정보를 반환한다', () => {});
+    it('범위 밖의 날짜는 false를 반환해야 한다', () => {
+      const date = new Date(2025, 4, 5);
+      const rangeEnd = new Date(2025, 4, 20);
+      const rangeStart = new Date(2025, 4, 10);
+      expect(isDateInRange(date, rangeStart, rangeEnd)).toBe(false);
+    });
+  });
 
-  it('평년 2월의 마지막 주에 대해 올바른 주 정보를 반환한다', () => {});
-});
+  describe('fillZero', () => {
+    it('한 자리 숫자는 앞에 0이 채워져야 한다', () => {
+      expect(fillZero(5)).toBe('05');
+    });
 
-describe('formatMonth', () => {
-  it("2025년 7월 10일을 '2025년 7월'로 반환한다", () => {});
-});
+    it('두 자리 숫자는 그대로 반환되어야 한다', () => {
+      expect(fillZero(15)).toBe('15');
+    });
 
-describe('isDateInRange', () => {
-  const rangeStart = new Date('2025-07-01');
-  const rangeEnd = new Date('2025-07-31');
+    it('크기를 3으로 지정하면 세 자리로 채워져야 한다', () => {
+      const size = 3;
+      const value = 5;
+      expect(fillZero(value, size)).toBe('005');
+    });
+  });
 
-  it('범위 내의 날짜 2025-07-10에 대해 true를 반환한다', () => {});
+  describe('formatDate', () => {
+    it('날짜가 YYYY-MM-DD 형식으로 포맷팅되어야 한다', () => {
+      const date = new Date(2025, 4, 15);
+      expect(formatDate(date)).toBe('2025-05-15');
+    });
 
-  it('범위의 시작일 2025-07-01에 대해 true를 반환한다', () => {});
-
-  it('범위의 종료일 2025-07-31에 대해 true를 반환한다', () => {});
-
-  it('범위 이전의 날짜 2025-06-30에 대해 false를 반환한다', () => {});
-
-  it('범위 이후의 날짜 2025-08-01에 대해 false를 반환한다', () => {});
-
-  it('시작일이 종료일보다 늦은 경우 모든 날짜에 대해 false를 반환한다', () => {});
-});
-
-describe('fillZero', () => {
-  test("5를 2자리로 변환하면 '05'를 반환한다", () => {});
-
-  test("10을 2자리로 변환하면 '10'을 반환한다", () => {});
-
-  test("3을 3자리로 변환하면 '003'을 반환한다", () => {});
-
-  test("100을 2자리로 변환하면 '100'을 반환한다", () => {});
-
-  test("0을 2자리로 변환하면 '00'을 반환한다", () => {});
-
-  test("1을 5자리로 변환하면 '00001'을 반환한다", () => {});
-
-  test("소수점이 있는 3.14를 5자리로 변환하면 '03.14'를 반환한다", () => {});
-
-  test('size 파라미터를 생략하면 기본값 2를 사용한다', () => {});
-
-  test('value가 지정된 size보다 큰 자릿수를 가지면 원래 값을 그대로 반환한다', () => {});
-});
-
-describe('formatDate', () => {
-  it('날짜를 YYYY-MM-DD 형식으로 포맷팅한다', () => {});
-
-  it('day 파라미터가 제공되면 해당 일자로 포맷팅한다', () => {});
-
-  it('월이 한 자리 수일 때 앞에 0을 붙여 포맷팅한다', () => {});
-
-  it('일이 한 자리 수일 때 앞에 0을 붙여 포맷팅한다', () => {});
+    it('day 매개변수를 제공하면 해당 일자로 포맷팅되어야 한다', () => {
+      const day = 20;
+      const date = new Date(2025, 4, 15);
+      expect(formatDate(date, day)).toBe('2025-05-20');
+    });
+  });
 });
