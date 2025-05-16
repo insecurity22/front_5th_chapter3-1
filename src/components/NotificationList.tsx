@@ -1,14 +1,15 @@
 import { Alert, AlertIcon, AlertTitle, Box, CloseButton, VStack } from '@chakra-ui/react';
-import React from 'react';
 
-import { Notification } from '../types';
+import { useNotifications } from '../hooks/useNotifications';
+import { Event } from '../types';
 
 interface Props {
-  notifications: Notification[];
-  setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>;
+  events: Event[];
 }
 
-export default function NotificationList({ notifications, setNotifications }: Props) {
+export default function NotificationList({ events }: Props) {
+  const { notifications, setNotifications } = useNotifications(events);
+
   if (notifications.length === 0) {
     return null;
   }
