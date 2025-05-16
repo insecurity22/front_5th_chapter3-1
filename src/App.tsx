@@ -65,7 +65,6 @@ function App() {
         setIsOverlapDialogOpen={setIsOverlapDialogOpen}
         overlappingEvents={overlappingEvents}
         saveEvent={saveEvent}
-        editingEvent={eventForm.editingEvent}
       />
 
       <NotificationList events={events} />

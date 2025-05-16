@@ -19,7 +19,6 @@ interface Props {
   setIsOverlapDialogOpen: (isOverlapDialogOpen: boolean) => void;
   overlappingEvents: Event[];
   saveEvent: (event: Event | EventForm) => void;
-  editingEvent: Event | null;
 }
 
 export default function EventOverlapDialog({
@@ -28,7 +27,6 @@ export default function EventOverlapDialog({
   setIsOverlapDialogOpen,
   overlappingEvents,
   saveEvent,
-  editingEvent,
 }: Props) {
   const cancelRef = useRef<HTMLButtonElement>(null);
 
@@ -44,6 +42,7 @@ export default function EventOverlapDialog({
     repeatInterval,
     repeatEndDate,
     notificationTime,
+    editingEvent,
   } = eventForm;
 
   return (
@@ -86,7 +85,7 @@ export default function EventOverlapDialog({
                   location,
                   category,
                   repeat: {
-                    type: isRepeating ? repeatType : 'none',
+                    type: repeatType,
                     interval: repeatInterval,
                     endDate: repeatEndDate || undefined,
                   },
